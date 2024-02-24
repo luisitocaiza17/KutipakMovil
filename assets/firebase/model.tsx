@@ -1,0 +1,28 @@
+interface Persona {
+    nombre: string;
+    apellido: string;
+    edad: number
+}
+
+interface Palabras {
+    codigo: string;
+    id: string;
+    idioma: string;
+    nemotecnico: string;
+    palabra: string;
+    significado: string;
+    tipo: string;
+}
+
+interface PrefijosSubfijos {
+    idioma: string;
+    id: string;
+    palabra: string;
+}
+
+interface TiposPalabras {
+    nombreTipo: string;
+    id: string;
+    nemotecnico: string;
+    codigoktpak: string;
+}
