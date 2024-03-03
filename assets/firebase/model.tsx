@@ -26,3 +26,9 @@ interface TiposPalabras {
     nemotecnico: string;
     codigoktpak: string;
 }
+
+interface Estructura {
+    Entrada: string;
+    Salida: string;
+}
+

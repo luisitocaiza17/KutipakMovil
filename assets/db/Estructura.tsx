@@ -1,0 +1,45 @@
+// Define tu string JSON
+const EstructuraJson = `
+[{"Salida": "ZA", "Entrada": "AZ"}, 
+{"Salida": "0D", "Entrada": "D0"}, 
+{"Salida": "0M", "Entrada": "M0"}, 
+{"Salida": "DM", "Entrada": "MD"}, 
+{"Salida": "SV", "Entrada": "VS"}, 
+{"Salida": "SB", "Entrada": "BS"}, 
+{"Salida": "SZ", "Entrada": "ZS"}, 
+{"Salida": "AZ", "Entrada": "ZA"}, 
+{"Salida": "M0", "Entrada": "0M"}, 
+{"Salida": "MZ", "Entrada": "ZM"}, 
+{"Salida": "P0", "Entrada": "0P"}, 
+{"Salida": "0P", "Entrada": "P0"}, 
+{"Salida": "PA", "Entrada": "AP"}, 
+{"Salida": "AP", "Entrada": "0P"}, 
+{"Salida": "AP", "Entrada": "PA"}, 
+{"Salida": "0P", "Entrada": "P0"}, 
+{"Salida": "PA", "Entrada": "AP"}, 
+{"Salida": "AP", "Entrada": "0P"}, 
+{"Salida": "AP", "Entrada": "PA"}, 
+{"Salida": "0P", "Entrada": "P0"}, 
+{"Salida": "PA", "Entrada": "AP"}, 
+{"Salida": "AP", "Entrada": "0P"}, 
+{"Salida": "AP", "Entrada": "PA"}, 
+{"Salida": "0P", "Entrada": "P0"}, 
+{"Salida": "DZ", "Entrada": "ZD"}, 
+{"Salida": "ZD", "Entrada": "DZ"}, 
+{"Salida": "ZM", "Entrada": "MZ"}, 
+{"Salida": "ZM", "Entrada": "MZ"}, 
+{"Salida": "VM", "Entrada": "MV"}, 
+{"Salida": "MV", "Entrada": "VM"}, 
+{"Salida": "MZ", "Entrada": "ZM"}, 
+{"Salida": "PZ", "Entrada": "ZP"}, 
+{"Salida": "ZP", "Entrada": "PZ"}, 
+{"Salida": "5M", "Entrada": "M5"}, 
+{"Salida": "VP", "Entrada": "PV"}, 
+{"Salida": "VS", "Entrada": "SV"}, 
+{"Salida": "DV", "Entrada": "VD"}, 
+{"Salida": "VD", "Entrada": "DV"}
+]
+`;
+
+// Exporta el string JSON para que pueda ser importado en otros archivos
+export default EstructuraJson;
