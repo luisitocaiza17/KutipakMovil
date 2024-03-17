@@ -5,10 +5,7 @@ import { PalabrasEstructuraTraduccion } from './../db/Entidades';
 import Voice from '@react-native-voice/voice';//para reconocimiento por voz
 import * as Permissions from 'expo-permissions';
 import firebase from '../firebase/firebase'; //clase de coneccion firebase
-import { arrayRemove, collection, getDocs } from "firebase/firestore";
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faMicrophone } from '@fortawesome/free-solid-svg-icons'; // Importa el ícono que deseas usar
-import { faArrowsDownToPeople } from '@fortawesome/free-solid-svg-icons'; 
+import { collection, getDocs } from "firebase/firestore";
 //import CargaInicialFirebasePS from "../firebase/firebaseInicialPS";
 //import CargaInicialFirebaseEstructura from "../firebase/firebaseInicialEstructura";
 
@@ -524,7 +521,7 @@ const Traductor = () => {
 
             {/* Botón para traducir el texto */}
             <TouchableOpacity style={styles.botonTraducir} onPress={traducirTexto}>
-            <FontAwesomeIcon icon={faArrowsDownToPeople} style={styles.icon} />     <Text style={styles.textoBotonTraducir}>Traducir</Text>
+                <Text style={styles.textoBotonTraducir}>Traducir</Text>
             </TouchableOpacity>
 
             {/* Texto traducido */}
@@ -557,8 +554,9 @@ const Traductor = () => {
                         underlayColor="transparent"
                         style={[styles.hablarButton, isListening && styles.hablarButtonPressed]} // Aplica estilos específicos al botón "Presiona y habla"
                     >
-                        {/* Utiliza el componente FontAwesomeIcon con el ícono que desees */}
-                        <FontAwesomeIcon icon={faMicrophone} style={styles.icon} />                   
+                        <Text style={styles.buttonText}>
+                            {isListening ? "Escuchando..." : "Presiona y habla"}
+                        </Text>
                     </TouchableHighlight>
                 </View>
             </View>
@@ -669,10 +667,6 @@ const styles = StyleSheet.create({
     },
     hablarButtonPressed: {
         backgroundColor: '#00FF00', // Cambia el color del botón a verde cuando está presionado
-    },
-    icon: {
-        color: '#fff',
-        fontSize: 24, // Tamaño del ícono
     },
 });
 

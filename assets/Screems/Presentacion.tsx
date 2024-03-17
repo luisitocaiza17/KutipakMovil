@@ -1,9 +1,6 @@
 import React from "react";
-import { View, Text, Button, Image, Dimensions, TouchableOpacity,StyleSheet } from 'react-native';
+import { View, Text, Button, Image, Dimensions, TouchableOpacity } from 'react-native';
 import { NavigationProp } from '@react-navigation/native';
-import { faForwardStep } from '@fortawesome/free-solid-svg-icons'; 
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-
 //TODO: PANTALLA PRINCIPAL que contiene elementos de navegacion y presentacion
 interface Props {
     navigation: NavigationProp<any>;
@@ -60,16 +57,10 @@ const Presentacion: React.FC<Props> = ({ navigation }) => {
                 onPress={() => navigation.navigate('Traductor')}
             >
                 {/* al ahcer clic lleva a la pantalla de traduccion */}
-                <Text style={{ color: 'white', fontSize: 18 }}>IR A TRADUCTOR <FontAwesomeIcon icon={faForwardStep} style={styles.icon} /> 
-            </Text>
+                <Text style={{ color: 'white', fontSize: 18 }}>IR A TRADUCTOR</Text>
             </TouchableOpacity>
         </View>
     )
 }
-const styles = StyleSheet.create({    
-    icon: {
-        color: '#fff',
-        fontSize: 50, // Tamaño del ícono
-    },
-});
+
 export default Presentacion;
