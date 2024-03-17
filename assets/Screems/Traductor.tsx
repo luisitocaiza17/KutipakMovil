@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Button, TextInput, TouchableOpacity, StyleSheet, TouchableHighlight } from 'react-native';
-import { palabras, prefijosSubfijos, tiposPalabras, estructura } from './../db/CargaInicial';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableHighlight } from 'react-native';
+import { palabras, prefijosSubfijos, estructura, actualizarPrefijosSubfijos, actualizarEstructura } from './../db/CargaInicial';
 import { PalabrasEstructuraTraduccion } from './../db/Entidades';
 import Voice from '@react-native-voice/voice';//para reconocimiento por voz
-import * as Permissions from 'expo-permissions'; 
+import * as Permissions from 'expo-permissions';
+import firebase from '../firebase/firebase'; //clase de coneccion firebase
+import { collection, getDocs } from "firebase/firestore";
+//import CargaInicialFirebasePS from "../firebase/firebaseInicialPS";
+//import CargaInicialFirebaseEstructura from "../firebase/firebaseInicialEstructura";
 
 const Traductor = () => {
     const [idioma, setIdioma] = useState(1);
@@ -13,7 +17,7 @@ const Traductor = () => {
     //para reconocimiento de voz
     const [isListening, setIsListening] = useState(false);
     const [permissionsGranted, setPermissionsGranted] = useState(false);
-
+    //TODO: validador de permisos sobre el audio en el dispositivo
     useEffect(() => {
         async function requestAudioRecordingPermission() {
             const { status } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
@@ -27,12 +31,75 @@ const Traductor = () => {
         }
         requestAudioRecordingPermission();
     }, []);
-
+    //funcion que cambio el idioma a traducir
     const cambiarIdioma = (valor: number) => {
         setIdioma(valor);
     };
+    //TODO:Consulta a firebase.... si no lo encuentra deja la data local, para que siempre pueda traducir
+    //Carga inicial de firebase si no es posible la coneccion se toma desde local
+    const consultarPrefijosSubfijos = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(firebase.db, "PrefijosSubfijos"));
+            const listaPrefijosSubfijosFirebase: PrefijosSubfijos[] = [];
+            querySnapshot.forEach((doc) => {
+                // doc.data() is never undefined for query doc snapshots
+                console.log(doc.id, " => ", doc.data());
+                const data = doc.data() as PrefijosSubfijos;
+                listaPrefijosSubfijosFirebase.push(data);
 
-    const traducirTexto = () => {
+            });
+            if (listaPrefijosSubfijosFirebase.length != 0) {
+                actualizarPrefijosSubfijos(listaPrefijosSubfijosFirebase);
+            }
+            console.log("Fin");
+        } catch (error) {
+            //en caso de error se queda con local
+        }
+    };
+    const consultarEstructura = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(firebase.db, "Estructura"));
+            const listaEstructura: Estructura[] = [];
+            querySnapshot.forEach((doc) => {
+                // doc.data() is never undefined for query doc snapshots
+                console.log(doc.id, " => ", doc.data());
+                const data = doc.data() as Estructura;
+                listaEstructura.push(data);
+            });
+            if (listaEstructura.length != 0) {
+                actualizarEstructura(listaEstructura);
+            }
+            console.log("Fin");
+        } catch (error) {
+            //en caso de error se queda con local
+        }
+    };
+    consultarEstructura();
+    consultarPrefijosSubfijos();
+
+    //solo para carga inicial en firebase con data para el procesos, no se lo vuelve hacer, es una subida masiva de informacion
+    /* 
+    const otraClase = async () => {
+        try {
+            await CargaInicialFirebasePS();
+            console.log('Datos cargados y enviados correctamente a Firebase');
+        } catch (error) {
+            console.error('Error al cargar y enviar datos:', error);
+        }
+    };
+    otraClase();
+    const otraClase2 = async () => {
+        try {
+            await CargaInicialFirebaseEstructura();
+            console.log('Datos cargados y enviados correctamente a Firebase');
+        } catch (error) {
+            console.error('Error al cargar y enviar datos:', error);
+        }
+    };
+    otraClase2(); */
+
+    //TODO: Proceso de traduccion.
+    const traducirTexto = async () => {
         // Define una expresión regular para dividir el texto en oraciones sin perder los caracteres especiales
         const sentenceRegex = /[^.:,;?¿!¡]+[.:,;?¿!¡]*/g;
 
@@ -148,23 +215,23 @@ const Traductor = () => {
 
                                         if (palabraEncontrada === undefined) {
                                             //sino buscamos por deduccion
-                                            console.log("***traduccion plurales " + traduccion);
+                                            console.log("***traduccion deduccion " + traduccion);
                                             for (let i = 1; i <= 3; i++) {
                                                 const palabraRecortada: string = traduccion.substring(0, traduccion.length - i).trim();
-                                                console.log("***traduccion plurales palabra " + palabraRecortada);
+                                                console.log("***traduccion deduccion palabra " + palabraRecortada);
 
                                                 siginificado = palabras.find(x => x.idioma == "ESPAÑOL" && x.palabra == palabraRecortada);
                                                 if (siginificado != undefined) {
-                                                    console.log("***traduccion sginificado " + siginificado);
+                                                    console.log("***deduccion significado " + siginificado);
                                                     existeTraduccion = true;
                                                     break;
                                                 }
                                             }
-                                            console.log("***Existe Traduccion " + existeTraduccion);
+                                            console.log("***Existe significado " + existeTraduccion);
                                             if (existeTraduccion) {
                                                 oracionTraducida += " " + siginificado?.significado;
                                                 if (tienePlural) {
-                                                    console.log("***Plular traduccion " + siginificado);
+                                                    console.log("***traduccion " + siginificado);
                                                     oracionTraducida += "KUNA"
                                                 }
                                             } else {
@@ -276,31 +343,31 @@ const Traductor = () => {
                                             const palabraSinCaracteres = normalizeText(traduccion ?? '');
                                             const palabraEncontrada = palabras.find(
                                                 x =>
-                                                    x.idioma === "ESPAÑOL" &&
+                                                    x.idioma === "KITCHWA" &&
                                                     normalizeText(x.palabra) === palabraSinCaracteres
                                             );
                                             console.log("encontro sin caracteres2?" + palabraEncontrada);
 
                                             if (palabraEncontrada === undefined) {
                                                 //sino buscamos por deduccion
-                                                console.log("***traduccion plurales " + traduccion);
+                                                console.log("***deduccion " + traduccion);
                                                 for (let i = 1; i <= 3; i++) {
                                                     const palabraRecortada: string = traduccion.substring(0, traduccion.length - i).trim();
-                                                    console.log("***traduccion plurales palabra " + palabraRecortada);
+                                                    console.log("***deduccion palabra " + palabraRecortada);
 
-                                                    siginificado = palabras.find(x => x.idioma == "ESPAÑOL" && x.palabra == palabraRecortada);
+                                                    siginificado = palabras.find(x => x.idioma == "KITCHWA" && x.palabra == palabraRecortada);
                                                     if (siginificado != undefined) {
-                                                        console.log("***traduccion sginificado " + siginificado);
+                                                        console.log("***deduccion sginificado " + siginificado);
                                                         existeTraduccion = true;
                                                         break;
                                                     }
                                                 }
-                                                console.log("***Existe Traduccion " + existeTraduccion);
+                                                console.log("***Existe deduccion " + existeTraduccion);
                                                 if (existeTraduccion) {
                                                     oracionTraducida += " " + siginificado?.significado;
                                                     if (tienePlural) {
-                                                        console.log("***Plular traduccion " + siginificado);
-                                                        oracionTraducida += "KUNA"
+                                                        console.log("***deduccion " + siginificado);
+                                                        oracionTraducida += "S"
                                                     }
                                                 } else {
                                                     oracionTraducida += " " + palabraSola;
@@ -316,13 +383,31 @@ const Traductor = () => {
                                 } else {
                                     //en caso de encontrar KUNA se le hace un split para separar el plular de la oracion a traducir
                                     const cadenasPlural = palabraSola.split("KUNA");
+                                    let existeTraduccion = false;
                                     //buscamos el significado sin kuna
                                     siginificado = palabras.find(x => x.idioma == "KITCHWA" && x.palabra == cadenasPlural[0]);
                                     if (siginificado === undefined) {
                                         //si aun asi no hay significado se hace el proces de deduccion
+                                        console.log("***traduccion deduccion " + siginificado);
+                                        for (let i = 1; i <= 3; i++) {
+                                            const palabraRecortada: string = cadenasPlural[0].substring(0, cadenasPlural[0].length - i).trim();
+                                            console.log("***traduccion deduccion palabra " + palabraRecortada);
 
+                                            siginificado = palabras.find(x => x.idioma == "ESPAÑOL" && x.palabra == palabraRecortada);
+                                            if (siginificado != undefined) {
+                                                console.log("***deduccion significado " + siginificado);
+                                                existeTraduccion = true;
+                                                break;
+                                            }
+                                        }
+                                        console.log("***Existe significado " + existeTraduccion);
+                                        if (existeTraduccion) {
+                                            oracionTraducida += " " + siginificado?.significado;
 
-
+                                            oracionTraducida += "S"
+                                        } else {
+                                            oracionTraducida += " " + palabraSola;
+                                        }
                                     } else {
                                         // si tiene significado se agrega el plural
                                         oracionTraducida += " " + pluralizarPalabra(palabraSola);
@@ -368,40 +453,12 @@ const Traductor = () => {
         } else {
             return palabra + "es";
         }
-    }
-    //funcion para buscar la estructura de palabras y cambiar las posiciones
-    const cambiarPosiciones = (listaPalabras: PalabrasEstructuraTraduccion[]) => {
-        for (let i = 0; i < listaPalabras.length - 1; i++) {
-            const palabraActual = listaPalabras[i];
-            const palabraSiguiente = listaPalabras[i + 1];
-            const tipoActual = palabraActual.Tipo;
-            const tipoSiguiente = palabraSiguiente.Tipo;
-            const entrada = tipoActual + tipoSiguiente;
-            console.log("Estructura E1" + entrada)
-            // Verificar si la entrada existe en la lista de estructuras
-            const estructuraB = estructura.find(objeto => objeto.Entrada === entrada);
-            console.log("Estructura E1S")
-            console.log(estructuraB)
-            if (estructuraB) {
-                // Intercambiar las posiciones de las palabras
-                console.log(listaPalabras[i])
-                console.log(palabraSiguiente)
-                listaPalabras[i] = palabraSiguiente;
-                console.log(listaPalabras[i + 1])
-                console.log(palabraActual)
-                listaPalabras[i + 1] = palabraActual;
-            }
-        }
-        console.log("Estructura Salida")
-        console.log(listaPalabras)
-    }
+    }    
     //Para reconocimiento de voz
-    
-    useEffect(() => {       
+    useEffect(() => {
         // Configuración de eventos de reconocimiento de voz
         Voice.onSpeechResults = onSpeechResults;
         Voice.onSpeechError = onSpeechError;
-
         return () => {
             // Limpia los eventos al desmontar el componente
             Voice.destroy().then(Voice.removeAllListeners);
@@ -411,12 +468,11 @@ const Traductor = () => {
     const startSpeechToText = async () => {
         try {
             setIsListening(true);
-            await Voice.start('es-ES'); // Puedes especificar el idioma aquí
+            await Voice.start('es-ES'); 
         } catch (error) {
             console.error(error);
         }
     };
-
     const stopSpeechToText = async () => {
         try {
             setIsListening(false);
@@ -425,16 +481,12 @@ const Traductor = () => {
             console.error(error);
         }
     };
-
     const onSpeechResults = (event: any) => {
         setTextoInput(event.value[0]);
     };
-
     const onSpeechError = (event: any) => {
         console.error("Error de voz:", event.error);
     };
-
-
     return (
         <View style={styles.container}>
             {/* Título */}
@@ -481,7 +533,7 @@ const Traductor = () => {
                 multiline={true}
                 numberOfLines={4} // Establece el número de líneas
             />
-            <View style={styles.row}>
+            {/* <View style={styles.row}>
                 <Text style={styles.subtitle}>Oraciones:</Text>
                 <View>
                     {sentences ? (
@@ -492,19 +544,22 @@ const Traductor = () => {
                         <Text style={styles.sentence}>No se encontraron oraciones</Text>
                     )}
                 </View>
+            </View> */}
+            <View style={styles.containerButton}>
+                {/* Resto de tu código */}
+                <View style={styles.buttonContainer}>
+                    <TouchableHighlight
+                        onPressIn={startSpeechToText}
+                        onPressOut={stopSpeechToText}
+                        underlayColor="transparent"
+                        style={styles.hablarButton} // Aplica estilos específicos al botón "Presiona y habla"
+                    >
+                        <Text style={styles.buttonText}>
+                            {isListening ? "Escuchando..." : "Presiona y habla"}
+                        </Text>
+                    </TouchableHighlight>
+                </View>
             </View>
-            <View style={styles.container}>                
-                <TouchableHighlight
-                    onPressIn={startSpeechToText}
-                    onPressOut={stopSpeechToText}
-                    underlayColor="transparent"
-                    style={styles.button}
-                >
-                    <Text style={styles.buttonText}>
-                        {isListening ? "Escuchando..." : "Presiona y habla"}
-                    </Text>
-                </TouchableHighlight>
-            </View>            
         </View>
     );
 }
@@ -514,6 +569,7 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 20,
         paddingTop: 20,
+
     },
     titulo: {
         textAlign: 'center',
@@ -591,6 +647,23 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#fff',
         fontSize: 18,
+    },
+    // Estilos para el botón "Presiona y habla"
+    hablarButton: {
+        backgroundColor: '#007bff',
+        borderRadius: 50, // Hace que el botón sea completamente redondo
+        paddingVertical: 15, // Reduce el espacio vertical dentro del botón
+        paddingHorizontal: 30, // Reduce el espacio horizontal dentro del botón
+    },
+    buttonContainer: {
+        width: 200, // Ancho del contenedor del botón
+        alignItems: 'center', // Centra el botón dentro del contenedor horizontalmente
+    },
+    containerButton: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 20,
+        alignItems: 'center', // Centra los elementos horizontalmente
     },
 });
 

@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-
+//TODO clase para colocar credenciales firebase
 const firebaseConfig = {
     apiKey: "AIzaSyCY4S9DTPmPZ3Iw71FPMiHSEZtCBqBph9Q",
     authDomain: "kutipak-movil.firebaseapp.com",

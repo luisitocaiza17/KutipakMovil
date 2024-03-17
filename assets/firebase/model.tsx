@@ -1,3 +1,4 @@
+//TODO: Interfaces genericas reflejo de la base de datos, a ser usados para carga la inf de BD
 interface Persona {
     nombre: string;
     apellido: string;
